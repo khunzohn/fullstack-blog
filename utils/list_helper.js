@@ -23,24 +23,40 @@ const favoriteBlog = (blogs) => {
 }
 
 const mostBlogs = (blogs) => {
-    let blogsGroupByAuthor = []
+    let blogsGroupedByAuthor = []
     for(let [author, hisBlogs] of Object.entries(_.groupBy(blogs, 'author'))) {
-        blogsGroupByAuthor.push({
+        blogsGroupedByAuthor.push({
             author,
             blogs: hisBlogs.length
         })
     }        
 
-    logger.info(blogsGroupByAuthor)
+    logger.info(blogsGroupedByAuthor)
 
-    return blogsGroupByAuthor.sort((a, b) => {
+    return blogsGroupedByAuthor.sort((a, b) => {
         return b.blogs - a.blogs
     })[0]
 }
 
+const mostLikes = (blogs) => {
+    let blogsGroupedByAuthor = []
+    for(let [author, hisBlogs] of Object.entries(_.groupBy(blogs, 'author'))) {
+        blogsGroupedByAuthor.push({
+            author,
+            likes: hisBlogs.map(b => b.likes).reduce((sum, item) => sum + item)
+        })
+    }     
+
+    logger.info(blogsGroupedByAuthor)
+
+    return blogsGroupedByAuthor.sort((a, b) => {
+        return b.likes - a.likes
+    })[0]
+}
 module.exports = {
     dummy,
     totalLikes,
     favoriteBlog,
-    mostBlogs
+    mostBlogs,
+    mostLikes
 }
