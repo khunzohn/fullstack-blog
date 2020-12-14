@@ -44,11 +44,11 @@ test("POST request creates a new blog post", async () => {
   const response = await api.post('/api/blogs')
     .send(newBlog)
 
-  const totalBlogs = await helper.blogsInDB  
+  const totalBlogs = await api.get('/api/blogs')
 
-  expect(totalBlogs).toHaveLength(helper.initialBlogs.length + 1)
+  expect(totalBlogs.body).toHaveLength(helper.initialBlogs.length + 1)
 
-  const authors = totalBlogs.map(b => b.author)
+  const authors = totalBlogs.body.map(b => b.author)
   expect(authors).toContain('Khun Zohn')
 });
 
