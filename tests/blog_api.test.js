@@ -52,6 +52,22 @@ test("POST request creates a new blog post", async () => {
   expect(authors).toContain('Khun Zohn')
 });
 
+test('likes value is 0 when likes property is missing in request', async () => {
+  const newBlog = {
+    author: "Khun Zohn",
+    title: "Eating patterns",
+    url: "https://reactpatterns.com/"
+  }
+
+  const response = await api.post('/api/blogs')
+    .send(newBlog)
+
+  const postedBlog = response.body
+  
+  expect(postedBlog.likes).toBeDefined()
+  expect(postedBlog.likes).toBe(0)
+})
+
 afterAll(() => {
   mongoose.connection.close();
 });
