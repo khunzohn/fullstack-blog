@@ -82,6 +82,19 @@ const initialBlogs = [
   }
 ];
 
+const nonExistingId = async () => {
+  const newBlog = new Blog({
+    title: "React patternss",
+    author: "Michael Chann",
+    url: "https://reactpatterns.com/",
+    likes: 7
+  })
+
+  await newBlog.save()
+  await newBlog.remove()
+  return newBlog._id.toString()
+}
+
 const blogsInDB = async () => {
     const blogs = await Blog.find({})
     return blogs.map(b => b.toJSON())
@@ -90,5 +103,6 @@ const blogsInDB = async () => {
 module.exports = {
     blogs,
     initialBlogs,
-    blogsInDB
+    blogsInDB,
+    nonExistingId
 }

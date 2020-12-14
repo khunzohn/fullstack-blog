@@ -18,68 +18,130 @@ beforeEach(async () => {
   logger.info("saved all blogs");
 });
 
-test("blogs are returned as json", async () => {
-  await api
-    .get("/api/blogs")
-    .expect(200)
-    .expect("Content-Type", /application\/json/);
-});
-
-test("identifier of blog posts is named id", async () => {
-  const blogs = await api.get("/api/blogs");
-
-  blogs.body.forEach((b) => {
-    expect(b.id).toBeDefined();
+describe('when there is initially some blogs saved', () => {
+  test("blogs are returned as json", async () => {
+    await api
+      .get("/api/blogs")
+      .expect(200)
+      .expect("Content-Type", /application\/json/);
   });
-});
 
-test("POST request creates a new blog post", async () => {
-  const newBlog = {
-    author: "Khun Zohn",
-    title: "Eating patterns",
-    url: "https://reactpatterns.com/",
-    likes: 7
-  }
+  test('all blogs are returned', async () => {
+    const response = await api
+      .get('/api/blogs')
+    
+    expect(response.body).toHaveLength(helper.initialBlogs.length)  
+  })
 
-  const response = await api.post('/api/blogs')
-    .send(newBlog)
+  test('a specific blog is within returned blogs', async () => {
+    const response = await api
+      .get('/api/blogs')
+    
+    const authors = response.body.map(b => b.author)  
 
-  const totalBlogs = await api.get('/api/blogs')
+    expect(authors).toContain('Michael Chan')
+  })
 
-  expect(totalBlogs.body).toHaveLength(helper.initialBlogs.length + 1)
-
-  const authors = totalBlogs.body.map(b => b.author)
-  expect(authors).toContain('Khun Zohn')
-});
-
-test('likes value is 0 when likes property is missing in request', async () => {
-  const newBlog = {
-    author: "Khun Zohn",
-    title: "Eating patterns",
-    url: "https://reactpatterns.com/"
-  }
-
-  const response = await api.post('/api/blogs')
-    .send(newBlog)
-
-  const postedBlog = response.body
+  test("identifier of blog posts are named id", async () => {
+    const blogs = await api.get("/api/blogs");
   
-  expect(postedBlog.likes).toBeDefined()
-  expect(postedBlog.likes).toBe(0)
+    blogs.body.forEach((b) => {
+      expect(b.id).toBeDefined();
+    });
+  });
 })
 
-test('return 400 if title and url are missing from the request', async () => {
-  const newBlog = {
-    author: "Khun Zohn",
-    likes: 13
-  }
+describe('viewing a specific blog', () => {
+  test('succeeds with a valid id', async () => {
+    const blogsAtStart = await helper.blogsInDB()
 
-  await api.post('/api/blogs')
-    .send(newBlog)
-    .expect(400)
+    const blogToView = blogsAtStart[0]
 
-  const response = await api.get('/api/blogs')
-  expect(response.body).toHaveLength(helper.initialBlogs.length)
+    const resultBlog = await api.get(`/api/blogs/${blogToView.id}`)
+      .expect(200)
+      .expect('Content-Type', /application\/json/)
+
+    const processedBlog = JSON.parse(JSON.stringify(blogToView))  
+
+    expect(resultBlog.body).toEqual(processedBlog)
+  })
+
+  test('fails with 404 if blog does not exist', async () => {
+    const validNonExistingId = await helper.nonExistingId()
+    await api.get(`/api/blogs/${validNonExistingId}`)
+      .expect(404)
+  })
+
+  test('fails with 400 if id is invalid', async () => {
+    const invalidId = "12hjj"
+    await api.get(`/api/blogs/${invalidId}`)
+      .expect(400)
+  })
+})
+
+describe('adding a new blog', () => {
+  test("succeeds with valid data", async () => {
+    const newBlog = {
+      author: "Khun Zohn",
+      title: "Eating patterns",
+      url: "https://reactpatterns.com/",
+      likes: 7
+    }
+  
+    const response = await api.post('/api/blogs')
+      .send(newBlog)
+  
+    const totalBlogs = await helper.blogsInDB()
+  
+    expect(totalBlogs).toHaveLength(helper.initialBlogs.length + 1)
+  
+    const authors = totalBlogs.map(b => b.author)
+    expect(authors).toContain('Khun Zohn')
+  });
+  
+  test('returns 400 if title and url are missing from the request', async () => {
+    const newBlog = {
+      author: "Khun Zohn",
+      likes: 13
+    }
+  
+    await api.post('/api/blogs')
+      .send(newBlog)
+      .expect(400)
+  
+    const response = await api.get('/api/blogs')
+    expect(response.body).toHaveLength(helper.initialBlogs.length)
+  })
+
+
+  test('defaults likes value to 0 when likes property is missing in request', async () => {
+    const newBlog = {
+      author: "Khun Zohn",
+      title: "Eating patterns",
+      url: "https://reactpatterns.com/"
+    }
+  
+    const response = await api.post('/api/blogs')
+      .send(newBlog)
+  
+    const postedBlog = response.body
+    
+    expect(postedBlog.likes).toBeDefined()
+    expect(postedBlog.likes).toBe(0)
+  })
+})
+
+describe('deletion of a blog', () => {
+  test('succeeds with 204 if id is valid', async () => {
+    const deletingNote = await helper.blogsInDB()
+
+    const result = await api.delete(`/api/blogs/${deletingNote[0].id}`)
+      .expect(204)
+      
+    const blogsAtEnd = await helper.blogsInDB()
+    
+    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length -1)
+  })
 })
 
 afterAll(() => {
