@@ -1,0 +1,13 @@
+GET http://localhost:3003/api/blogs
+
+###
+POST http://localhost:3003/api/blogs
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QiLCJpZCI6IjVmZDkwNTgxMDFjMThjMDc3ODExNTUwOSIsImlhdCI6MTYwODA2MzM3NH0.J-GNhXhPxZLOC8DjtmlHEMZn9epbfi6KEp6Wrh5UmEI
+
+{
+    "title": "Teach Yourself node in 1 hr",
+    "author": "khun xi",
+    "url": "asdkj",
+    "likes": 13
+}
