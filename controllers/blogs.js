@@ -29,7 +29,7 @@ blogsRouter.post('/', async (req, res) => {
   if (!token) {
     return res.status(401).send({ error: 'Unauthorized' })
   }
-  
+
   const decodedUser = jwt.verify(token, config.ACCESS_TOKEN_SECRET)
 
   if (!decodedUser.id) {
@@ -56,9 +56,26 @@ blogsRouter.post('/', async (req, res) => {
 })
 
 blogsRouter.delete('/:id', async (req, res) => {
-  const id = req.params.id
-  const result = await Blog.findByIdAndDelete(id)
-  res.status(204).end()
+  const token = req.token
+  
+  if (!token) {
+    return res.status(401).send({ error: 'Unauthorized' })
+  }
+  
+  const decodedUser = jwt.verify(token, config.ACCESS_TOKEN_SECRET)
+
+  if (!decodedUser.id) {
+    return res.status(401).send({ error: 'Unauthorized' })
+  }
+
+  const blog = await Blog.findById(req.params.id)
+
+  if(blog.user.toString() === decodedUser.id.toString()) {
+    await blog.delete()
+    res.status(204).end()
+  } else {
+    return res.status(401).send({ error: 'Unauthorized' })
+  }
 })
 
 blogsRouter.put('/:id', async (req, res) => {
