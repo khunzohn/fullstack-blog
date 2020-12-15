@@ -5,7 +5,6 @@ const app = require('../app')
 const User = require('../models/user')
 const bcrypt = require('bcrypt')
 const mongoose = require('mongoose')
-const usersRouter = require('../controllers/users')
 
 const api = supertest(app)
 
@@ -80,6 +79,87 @@ describe("creating a new user", () => {
 
     expect(usersAtEnd).toHaveLength(usersAtStart.length)
     expect(createUserResponse.body.error).toContain("`username` to be unique")
+  })
+
+  test('fails if username is not in', async () => {
+    const usersAtStart = await helper.usersInDB()
+
+    const newUser = {
+      password: 'hhehh',
+      name: 'ko ko',
+    }
+
+    const createUserResponse = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      
+
+    const usersAtEnd = await helper.usersInDB()
+
+    expect(usersAtEnd).toHaveLength(usersAtStart.length)
+    expect(createUserResponse.body.error).toContain("`username` is required")
+  })
+
+  test('fails if password is not in', async () => {
+    const usersAtStart = await helper.usersInDB()
+
+    const newUser = {
+      username: "khin khin",
+      name: 'ko ko',
+    }
+
+    const createUserResponse = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      
+
+    const usersAtEnd = await helper.usersInDB()
+
+    expect(usersAtEnd).toHaveLength(usersAtStart.length)
+    expect(createUserResponse.body.error).toContain("`password` is required")
+  })
+
+  test('fails if username is less than 3 characters long', async () => {
+    const usersAtStart = await helper.usersInDB()
+
+    const newUser = {
+      username: "kh",
+      password: "1212kjk",
+      name: 'ko ko',
+    }
+
+    const createUserResponse = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      
+
+    const usersAtEnd = await helper.usersInDB()
+
+    expect(usersAtEnd).toHaveLength(usersAtStart.length)
+  })
+
+  test('fails if password is less than 3 characters long', async () => {
+    const usersAtStart = await helper.usersInDB()
+
+    const newUser = {
+      username: "khin",
+      password: "12",
+      name: 'ko ko',
+    }
+
+    const createUserResponse = await api
+      .post('/api/users')
+      .send(newUser)
+      .expect(400)
+      
+
+    const usersAtEnd = await helper.usersInDB()
+
+    expect(usersAtEnd).toHaveLength(usersAtStart.length)
+    expect(createUserResponse.body.error).toContain("`password` is too short")
   })
 })
 
