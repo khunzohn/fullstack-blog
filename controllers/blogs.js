@@ -23,21 +23,13 @@ blogsRouter.get('/:id', async (req, res) => {
   }
 })
 
-const extractToken = (bearToken) => {
-  if (bearToken && bearToken.toLowerCase().startsWith('bearer')) {
-    return bearToken.split(' ')[1]
-  } else {
-    return null
-  }
-}
-
 blogsRouter.post('/', async (req, res) => {
-  const bearToken = req.headers['authorization']
-  const token = extractToken(bearToken)
-
+  const token = req.token
+  
   if (!token) {
     return res.status(401).send({ error: 'Unauthorized' })
   }
+  
   const decodedUser = jwt.verify(token, config.ACCESS_TOKEN_SECRET)
 
   if (!decodedUser.id) {
