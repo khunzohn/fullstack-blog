@@ -6,7 +6,8 @@ const app = require('../app')
 const logger = require('../utils/logger')
 
 const api = supertest(app)
-
+const token =
+  'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InJvb3QyIiwiaWQiOiI1ZmQ5MDViMjAxYzE4YzA3NzgxMTU1MGIiLCJpYXQiOjE2MDgwNjUwMjd9.CTMuV4PRfwU1A3-v-7IvcS68RsqySs9rBXC3UZpfHE8'
 beforeEach(async () => {
   await Blog.deleteMany({})
   logger.info('cleared')
@@ -85,7 +86,10 @@ describe('adding a new blog', () => {
       likes: 7,
     }
 
-    const response = await api.post('/api/blogs').send(newBlog)
+    const response = await api
+      .post('/api/blogs')
+      .set('Authorization', token)
+      .send(newBlog)
 
     const totalBlogs = await helper.blogsInDB()
 
@@ -101,25 +105,27 @@ describe('adding a new blog', () => {
       likes: 13,
     }
 
-    await api.post('/api/blogs').send(newBlog).expect(400)
+    await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .set('Authorization', token)
+      .expect(400)
 
     const response = await api.get('/api/blogs')
     expect(response.body).toHaveLength(helper.initialBlogs.length)
   })
 
-  test('defaults likes value to 0 when likes property is missing in request', async () => {
+  test('fails with 401 if there\'s no Authrization token', async () => {
     const newBlog = {
       author: 'Khun Zohn',
       title: 'Eating patterns',
       url: 'https://reactpatterns.com/',
     }
 
-    const response = await api.post('/api/blogs').send(newBlog)
-
-    const postedBlog = response.body
-
-    expect(postedBlog.likes).toBeDefined()
-    expect(postedBlog.likes).toBe(0)
+    const response = await api
+      .post('/api/blogs')
+      .send(newBlog)
+      .expect(401)
   })
 })
 
@@ -129,6 +135,7 @@ describe('deletion of a blog', () => {
 
     const result = await api
       .delete(`/api/blogs/${deletingNote[0].id}`)
+      .set('Authorization', token)
       .expect(204)
 
     const blogsAtEnd = await helper.blogsInDB()
@@ -190,12 +197,9 @@ describe('updating a blog', () => {
   })
 
   test('fails with 400 for invalid id', async () => {
-    const invalidId = "121"
+    const invalidId = '121'
 
-    const result = await api
-      .put(`/api/blogs/${invalidId}`)
-      .send({})
-      .expect(400)
+    const result = await api.put(`/api/blogs/${invalidId}`).send({}).expect(400)
   })
 
   test('fails with 400 for nonexisting id', async () => {
