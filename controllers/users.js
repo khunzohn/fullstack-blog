@@ -18,5 +18,10 @@ usersRouter.post('/', async (req, res) => {
     res.status(201).send(createdUser)
 })
 
+usersRouter.get('/', async (req, res) => {
+    const result = await User.find({})
+    res.send(result)
+})
+
 module.exports = usersRouter
 

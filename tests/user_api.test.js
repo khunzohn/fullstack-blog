@@ -24,6 +24,18 @@ beforeEach(async () => {
   logger.info('root user saved')
 })
 
+describe('getting user', () => {
+    test('succeeds with correct users count in db', async () => {
+        const usersInDB = await helper.usersInDB()
+
+        const usersFromApi = await api.get('/api/users')
+            .expect(200)
+            .expect('Content-Type', /application\/json/)
+
+        expect(usersFromApi.body).toHaveLength(usersInDB.length)    
+    })
+})
+
 describe("creating a new user", () => {
 
   test('succeeds with a fresh username', async () => {

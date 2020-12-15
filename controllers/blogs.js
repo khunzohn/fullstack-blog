@@ -25,6 +25,7 @@ blogsRouter.post('/', async (req, res) => {
     url: body.url,
     likes: body.likes ? body.likes : 0,
   })
+
   const result = await blog.save()
   res.status(201).json(result)
 })
@@ -46,10 +47,10 @@ blogsRouter.put('/:id', async (req, res) => {
     context: 'query',
   })
 
-  if(updatedBlog) {
+  if (updatedBlog) {
     res.json(updatedBlog)
   } else {
-    res.status(400).send({ error: "Bad request"})
+    res.status(400).send({ error: 'Bad request' })
   }
 })
 
